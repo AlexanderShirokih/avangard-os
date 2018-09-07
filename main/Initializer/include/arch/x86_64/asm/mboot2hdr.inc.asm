@@ -1,0 +1,28 @@
+%define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
+%define MULTIBOOT_ARCHITECTURE_I386  0
+
+%define MULTIBOOT_HEADER_TAG_END  0
+%define MULTIBOOT_HEADER_TAG_INFORMATION_REQUEST  1
+%define MULTIBOOT_HEADER_TAG_ADDRESS  2
+%define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS  3
+%define MULTIBOOT_HEADER_TAG_CONSOLE_FLAGS  4
+%define MULTIBOOT_HEADER_TAG_FRAMEBUFFER  5
+%define MULTIBOOT_HEADER_TAG_MODULE_ALIGN  6
+%define MULTIBOOT_HEADER_TAG_EFI_BS  7
+%define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI64  9
+%define MULTIBOOT_HEADER_TAG_RELOCATABLE  10
+
+section .multiboot
+
+header_start:
+    dd MULTIBOOT2_HEADER_MAGIC   ; magic number (boot 2)
+    dd MULTIBOOT_ARCHITECTURE_I386
+    dd header_end - header_start ;
+    ; checksum
+    dd 0x100000000 - (MULTIBOOT2_HEADER_MAGIC + 0 + (header_end - header_start))
+
+    ; insert optional boot tags here
+    dw MULTIBOOT_HEADER_TAG_END
+    dw 0
+    dd 8
+header_end:
