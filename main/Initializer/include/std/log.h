@@ -3,18 +3,28 @@
 
 //Enable debugging
 //-------------
-#define DEBUG
+#define LOG_NONE 0
+#define LOG_DEBUG "D"
+#define LOG_INFO "I"
+#define LOG_WARN "W"
+#define LOG_ERROR "E"
+
+#define LOGGING
+#define LOG_LEVEL LOG_DEBUG
 #define KERNEL_ASSERTION
 //--------------
 
-#ifdef DEBUG
+#ifdef LOGGING
 
 #include <std/log.h>
 #include <std/types.h>
 #include <std/format.h>
 
-#define debug(msg) *System::getStdOut() << "DEBUG: " << msg << "\n";
-#define debugf(...) *System::getStdOut()<< "DEBUG:"; Std::printf(System::getStdOut(), __VA_OPT__(,) __VA_ARGS__);
+#define log(log_level, msg) *System::getStdOut() << log_level << ": " << msg << "\n";
+#define logf(log_level, ...)                       \
+    *System::getStdOut() << log_level << ": ";     \
+    Std::printf(System::getStdOut(), __VA_ARGS__); \
+    *System::getStdOut() << "\n";
 #else
 #define debug(msg)
 #define debugf(msg, args)
