@@ -23,7 +23,6 @@ struct Guard
     UByte unusedStuff[16]; //+32
 };
 #else
-
 struct Guard
 {
     Bool isInitialized;         //+8
@@ -33,7 +32,7 @@ struct Guard
 #endif
 
 /*
- * The __cxa_guard functions called for static member initializaions
+ * The __cxa_guard_* functions calling for static member initializaions
 */
 
 extern "C" Bool __cxa_guard_acquire(Guard *guard)

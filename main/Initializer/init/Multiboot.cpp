@@ -9,6 +9,8 @@
 #include <sys/multiboot2.h>
 #include <sys/phys_mem.h>
 #include <sys/arch_init.h>
+#include <std/log.h>
+#include <sys/system.h>
 
 extern Address system_start;
 extern Address system_end;
@@ -27,7 +29,7 @@ void parseMultibootTags(Address mboot_addr)
         switch (tag->type)
         {
         case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
-            //                    kprint << "Kernel loaded by:";// << ((struct multiboot_tag_string *) tag)->string;
+            logf(LOG_INFO, "Kernel loaded by: %s", ((struct multiboot_tag_string *) tag)->string);
             break;
         case MULTIBOOT_TAG_TYPE_MMAP:
         {
