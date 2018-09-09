@@ -13,7 +13,7 @@ set(CMAKE_CXX_LINK_FLAGS "-ffreestanding -z max-page-size=0x1000 -T${CMAKE_CURRE
 set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER> <CMAKE_CXX_LINK_FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES> <LINK_FLAGS>")
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> -I${CMAKE_CURRENT_SOURCE_DIR}/include/arch/${ARCH}/asm/ -f ${CMAKE_ASM_NASM_OBJECT_FORMAT} -o <OBJECT> <SOURCE>")
-add_compile_options(-m64 -ffreestanding -nostdlib -mno-red-zone -fno-rtti -mno-mmx -mno-sse -mno-sse2 -mno-sse3 -mno-3dnow -nodefaultlibs -Wall -Wextra -Wtype-limits -Wmaybe-uninitialized -fno-exceptions)
+add_compile_options(-g -m64 -ffreestanding -nostdlib -mno-red-zone -fno-rtti -mno-mmx -mno-sse -mno-sse2 -mno-sse3 -mno-3dnow -nodefaultlibs -Wall -Wextra -Wtype-limits -Wmaybe-uninitialized -fno-exceptions)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
@@ -40,10 +40,17 @@ add_custom_target(RunQEMU
 )
 
 add_custom_target(DebugQEMU
-        COMMAND qemu-system-${ARCH} -s -S -cdrom ${ISO_FILE} > qemu-debug.log 2>&1 &
+        COMMAND qemu-system-${ARCH} -s -cdrom ${ISO_FILE} > qemu-debug.log 2>&1 &
         COMMENT Debug OS image in QEMU
+)
+
+add_custom_target(RunBOCHS
+        COMMAND xterm -e bochs -f ${CMAKE_CURRENT_SOURCE_DIR}/bochs.config -q
+        COMMENT Run OS image in BOCHS
 )
 
 add_custom_target(iso DEPENDS ${ISO_FILE})
 
 add_dependencies(RunQEMU iso)
+add_dependencies(DebugQEMU iso)
+add_dependencies(RunBOCHS iso)
