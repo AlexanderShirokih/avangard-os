@@ -14,4 +14,8 @@ UByte getPortByte(UShort port);
 
 void setPortByte(UShort port, UByte value);
 
+UShort getPortWord(UShort port);
+
+void setPortWord(UShort port, UShort value);
+
 #endif
