@@ -8,6 +8,7 @@
 #include <sys/phys_mem.h>
 #include <std/types.h>
 #include <std/format.h>
+#include <std/log.h>
 #include <sys/system.h>
 
 System::PhysMemory::PhysMemory()
@@ -24,16 +25,43 @@ void System::PhysMemory::addRegion(const Address addr, const ULong length, const
         //Участки памяти не должны перекрываться
         //Но boot дает нормальные участки
         MemoryArea *area = &areas[currArea];
-        area->start = GET_FRAME(addr);
+
+        //Если участок меньше размера одной страницы, тогда игнорируем его
+        if (length <= PAGE_SIZE)
+        {
+            logf(LOG_DEBUG, "Too small region [addr=%X, len=%X]. Ignore it.\n", addr, length);
+            return;
+        }
+
+        //Если начальный адрес не выровнен по размеру страницы, округляем в большую сторону
+        ULong start = GET_FRAME(addr);
+        if (addr % PAGE_SIZE)
+        {
+            start++;
+        }
+
+        //Если конечный адрес не выровнен по размеру страницы, будет округлён в меньшую сторону
+        const ULong end = GET_FRAME(addr + length);
+
+        if (start >= end)
+        {
+            //Пустая область
+            logf(LOG_WARN, "Invalid or empty memory region at start=%X, length=%X\n", addr, length);
+            return;
+        }
+
+        area->start = start;
         area->nextFreeFrame = area->start;
-        area->numFrames = GET_FRAME(addr + length) - area->start;
+        area->numFrames = end - start;
         area->availFrames = area->numFrames;
+
+        logf(LOG_DEBUG, "Area [addr=%X, len=%X, start=%i, numFrames=%i]\n", addr, length, area->start, area->numFrames);
+
         if (currArea)
         {
             areas[currArea - 1].nextArea = area;
         }
         currArea++;
-        //		area->nextArea = &areas[++currArea];
     }
     //else ignore unmapped area
 }
@@ -45,21 +73,29 @@ void System::PhysMemory::addRegion(const Address addr, const ULong length, const
 void System::PhysMemory::excludeRegion(const Address addr, const ULong length)
 {
     Frame page = GET_FRAME(addr);
-    MemoryArea *area = areas;
-    while (area->nextArea)
+    Frame endPage = GET_FRAME(addr + length);
+
+    //Выравниваем регион по размеру страницы
+    if (page % PAGE_SIZE)
+        page++;
+
+    for (UInt i = 0; i < MAX_AREAS; i++)
     {
+        MemoryArea *area = &areas[i];
+        if (!area)
+            continue;
+
         if (area->start == page)
         {
-            const Frame new_start = GET_FRAME(addr + length) + 1;
             //Вырезаем регион памяти если он попадает на начало участка
             //Вырезать можно только чистые регионы
-            area->numFrames -= new_start - area->start;
-            area->start = new_start;
+            area->numFrames -= endPage - area->start;
+            area->start = endPage;
             area->nextFreeFrame = area->start;
             area->availFrames = area->numFrames;
             break;
         }
-        else if (page < area->start + area->numFrames)
+        else if ((page > area->start && page < area->start + area->numFrames) || (endPage > area->start && endPage < area->start + area->numFrames))
         {
             /*
 			 * Если регион пямяти в середине участка, то ничего не делаем
@@ -75,14 +111,17 @@ void System::PhysMemory::excludeRegion(const Address addr, const ULong length)
 
 void System::PhysMemory::printRegions(Std::OutputStream *out)
 {
-    MemoryArea *area = areas;
+    Std::printf(out, (&areas[0]) ? "Avalable memory regions:\n" : "No available regions!!!");
 
-    Std::printf(out, (area->nextArea) ? "Avalable memory regions:\n" : "No available regions!!!");
-
-    while (area->nextArea)
+    for (UInt i = 0; i < MAX_AREAS; i++)
     {
-        Std::printf(out, "    Region start=%d, frames=%d\n", area->start, area->numFrames);
-        area = area->nextArea;
+        MemoryArea *area = &areas[i];
+        if (area)
+        {
+            Std::printf(out, "    Region start=%d, frames=%d\n", area->start, area->numFrames);
+            if (!area->nextArea)
+                break;
+        }
     }
 }
 

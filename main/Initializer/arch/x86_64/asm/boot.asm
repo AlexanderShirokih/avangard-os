@@ -44,13 +44,7 @@ long_mode_start:
 _stop: ; if something happened, halt the processor
     hlt
     jmp _stop
-
-; gets paging table location pointer
-global get_cr3
-get_cr3:
-	mov rax, cr3
-	ret
-
+    
 ; ---- misc functions
 bits 32
 
@@ -100,31 +94,17 @@ setup_page_tables:
     mov eax, pd_table
     or eax, 0b11 ; present + writable
     mov [pdp_table], eax
-
-    ; map each PD entry to a huge 2MiB page
-    mov ecx, 0         ; counter variable
-
-.map_p2_table:
-   ; map ecx-th P2 entry to a huge page that starts at address 2MiB*ecx
-   mov eax, 0x200000  ; 2MiB
-   mul ecx            ; start address of ecx-th page
-   or eax, 0b10000011 ; present + writable + huge
-   mov [pd_table + ecx * 8], eax ; map ecx-th entry
-
-   inc ecx            ; increase counter
-   cmp ecx, 512       ; if counter == 512, the whole P2 table is mapped
-   jne .map_p2_table  ; else map the next entry
-   ret
+    
+    ; map first P2 entry to a huge page that starts at 0x00
+    mov eax, 0b10000011 ; present + writable + huge
+    mov [pd_table], eax
+    
+    ret
 
 ; enables paging mode
 enable_paging:
        ; load PML4 to cr3 register (cpu uses this to access the P4 table)
        mov eax, pml4_table
-       
-       ;debugging info
-       mov long [pml4_table-8], 'HUMA'
-       mov long [pml4_table-4], 'N-OK'
-
        mov cr3, eax
 
        ; enable PAE-flag in cr4 (Physical Address Extension)
@@ -150,7 +130,7 @@ section .rodata
 ; Default GDT
 gdt64:
     dq 0 ; zero entry
-.code: equ $ - gdt64 ; new
+.code: equ $ - gdt64 
     dq (1<<43) | (1<<44) | (1<<47) | (1<<53) ; code segment
 .pointer:
     dw $ - gdt64 - 1
@@ -165,13 +145,11 @@ section .bss
 align 4096
 
 ; reserve space for paging tables
-pml4_table:
+pml4_table: ; PML4 Table pointing to PDP tables
     resb 4096
-pdp_table:
+pdp_table: ; PDP Table pointing to PD tables
     resb 4096
-pd_table:
-    resb 4096
-pt_table:
+pd_table: ; PD Table pointing to a huge 2MiB pages
     resb 4096
 
 ; reserve space for 64 kB stack
