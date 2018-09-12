@@ -10,14 +10,24 @@
 #include <std/types.h>
 #include <sys/system.h>
 
-void kpanicAt(const char* msg, const char* file, const unsigned int line)
+void System::kerror(String msg)
+{
+    kerror(msg, "undef", 0);
+}
+
+void System::kerror(String msg, String file, const unsigned int line)
+{
+    kpanicAt(msg, file, line);
+}
+
+void kpanicAt(String msg, String file, const unsigned int line)
 {
     INT_OFF
 
     ULong rax, rbx, rcx, rdx, rdi, rsi, rbp, rsp, r8, r9, r10, r11, r12, r13,
         r14, r15, cr0, cr2, cr3; //rip, rflags
 
-    Std::OutputStream* stdOut = System::getStdOut();
+    Std::OutputStream *stdOut = System::getStdOut();
 
     asm("mov %%rax, %0;\
 		 	mov %%rbx, %1;\
@@ -80,7 +90,7 @@ void kpanicAt(const char* msg, const char* file, const unsigned int line)
 
 extern "C" void kexception(RegistersState *regs, String ex_msg)
 {
-    Std::OutputStream* stdOut = System::getStdOut();
+    Std::OutputStream *stdOut = System::getStdOut();
 
     printf(stdOut, "--> FATAL EXCEPTION IN KERNEL <--\n");
     printf(stdOut, "--> MSG: %s <--\nGeneral registers state:\n", ex_msg);
@@ -91,8 +101,7 @@ extern "C" void kexception(RegistersState *regs, String ex_msg)
 void dump_regstate(RegistersState *regs)
 {
 
-
-    Std::OutputStream* stdOut = System::getStdOut();
+    Std::OutputStream *stdOut = System::getStdOut();
 
     REGDUMP2(stdOut, "RAX", regs->rax, "RBX", regs->rbx);
     REGDUMP2(stdOut, "RCX", regs->rcx, "RDX", regs->rdx);

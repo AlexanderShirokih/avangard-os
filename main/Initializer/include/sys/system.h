@@ -24,6 +24,10 @@ Std::OutputStream *getStdOut();
 
 Std::InputStream *getStdIn();
 
+void kerror(String msg, String file, const unsigned int line);
+
+void kerror(String msg);
+
 } // namespace System
 
 #endif
