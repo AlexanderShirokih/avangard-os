@@ -29,7 +29,7 @@ void parseMultibootTags(Address mboot_addr)
         switch (tag->type)
         {
         case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
-            logf(LOG_INFO, "Kernel loaded by: %s", ((struct multiboot_tag_string *) tag)->string);
+            logf(LOG_INFO, "Kernel loaded by: %s\n", ((struct multiboot_tag_string *)tag)->string);
             break;
         case MULTIBOOT_TAG_TYPE_MMAP:
         {

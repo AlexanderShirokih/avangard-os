@@ -76,8 +76,8 @@ void System::PhysMemory::excludeRegion(const Address addr, const ULong length)
     Frame endPage = GET_FRAME(addr + length);
 
     //Выравниваем регион по размеру страницы
-    if (page % PAGE_SIZE)
-        page++;
+    if (endPage % PAGE_SIZE)
+        endPage++;
 
     for (UInt i = 0; i < MAX_AREAS; i++)
     {
@@ -103,6 +103,7 @@ void System::PhysMemory::excludeRegion(const Address addr, const ULong length)
 			 * а фактически этот случай не должен произойти
 			 * потому-что пока есть только один участок и это ядро
 			 */
+            logf(LOG_ERROR, "Can't exclude[start=%i, end=%i] from region[start=%i, end=%i]\n", page, endPage, area->start, area->start + area->numFrames);
             kerror("Page shrinking required, but it not implemented by kernel");
         }
         area = area->nextArea;

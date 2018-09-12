@@ -11,7 +11,7 @@
 #include <std/types.h>
 #include <std/streams.h>
 
-#define PAGE_SIZE (1 << 21) //2MiB Huge Page
+#define PAGE_SIZE (1 << 12) // Return 4KiB pages again // (1 << 21) //2MiB Huge Page
 #define MAX_AREAS 8
 #define GET_FRAME(addr) (Frame)((addr) / PAGE_SIZE)
 
