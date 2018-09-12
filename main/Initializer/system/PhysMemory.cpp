@@ -72,7 +72,6 @@ void static inline checkIfEmpty(System::MemoryArea *area, UInt aId, System::Memo
     //Исключаемый регион памяти больше участка
     if (area->numFrames <= 0)
     {
-        debug("Yes");
         if (area->prevArea)
             area->prevArea->nextArea = area->nextArea;
 
@@ -103,7 +102,6 @@ void static inline checkIfEmpty(System::MemoryArea *area, UInt aId, System::Memo
  */
 void System::PhysMemory::excludeRegion(const Address addr, const ULong length)
 {
-    debugf("Excluding region [from=%X to %X]\n", addr, (addr + length));
     Frame page = GET_FRAME(addr);
     Frame endPage = GET_FRAME(addr + length);
 
@@ -119,7 +117,6 @@ void System::PhysMemory::excludeRegion(const Address addr, const ULong length)
 
         if (page <= area->start && endPage > area->start)
         {
-            debugf("Beginning case [page=%i, end=%i] area[start=%i, numFrames=%i]\n", page, endPage, area->start, area->numFrames);
             //Регион памяти попадает на начало участка
             area->numFrames -= endPage - area->start;
             area->start = endPage;
@@ -130,7 +127,6 @@ void System::PhysMemory::excludeRegion(const Address addr, const ULong length)
         }
         else if (page < area->start + area->numFrames && endPage >= area->start + area->numFrames)
         {
-            debugf("Ending case [page=%i, end=%i] area[start=%i, numFrames=%i]\n", page, endPage, area->start, area->numFrames);
 
             //Регион памяти попадает на конец участка
             area->numFrames -= area->numFrames + area->start - endPage;
