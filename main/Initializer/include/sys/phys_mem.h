@@ -24,9 +24,10 @@ struct MemoryArea
 {
   Frame start;
   Frame nextFreeFrame;
-  UInt numFrames;
+  Int numFrames;
   UInt availFrames;
   MemoryArea *nextArea;
+  MemoryArea *prevArea;
 };
 
 class PhysMemory
@@ -44,8 +45,8 @@ public:
   };
   void addRegion(const Address addr, const ULong length, const Bool avail);
   void excludeRegion(const Address addr, const ULong length);
-  Frame allocFrame();
-  void deallocFrame(Frame);
+  Address allocFrame();
+  void deallocFrame(Address);
   void printRegions(Std::OutputStream *out);
 };
 
