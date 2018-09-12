@@ -21,22 +21,29 @@
 #include <std/format.h>
 
 #define log(log_level, msg) *System::getStdOut() << log_level << ": " << msg << "\n";
-#define logf(log_level, ...)                       \
-    *System::getStdOut() << log_level << ": ";     \
-    Std::printf(System::getStdOut(), __VA_ARGS__); \
-    *System::getStdOut() << "\n";
+#define logf(log_level, ...)                   \
+    *System::getStdOut() << log_level << ": "; \
+    Std::printf(System::getStdOut(), __VA_ARGS__);
+#define debug(msg) log(LOG_DEBUG, msg)
+#define debugf(msg, ...) logf(LOG_DEBUG, msg, __VA_ARGS__)
+
 #else
+
+#define log(log_level, msg)
+#define logf(log_level, ...)
 #define debug(msg)
 #define debugf(msg, args)
+
 #endif
 
 #ifdef KERNEL_ASSERTION
 
-// #include <sys/panic.h>
-// #define assert(x) if(!x) kpanic_at("KERNEL ASSERTION FAILED", __FILE__, __LINE__);
+#define kassert(x) \
+    if (!x)        \
+        System::kerror("KERNEL ASSERTION FAILED", __FILE__, __LINE__);
 
 #else
-#define assert(x)
+#define kassert(x)
 #endif
 
 #endif
