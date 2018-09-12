@@ -60,18 +60,50 @@ void System::PhysMemory::addRegion(const Address addr, const ULong length, const
         if (currArea)
         {
             areas[currArea - 1].nextArea = area;
+            area->prevArea = &areas[currArea - 1];
         }
         currArea++;
     }
     //else ignore unmapped area
 }
 
+void static inline checkIfEmpty(System::MemoryArea *area, UInt aId, System::MemoryArea *areas)
+{
+    //Исключаемый регион памяти больше участка
+    if (area->numFrames <= 0)
+    {
+        debug("Yes");
+        if (area->prevArea)
+            area->prevArea->nextArea = area->nextArea;
+
+        //Trim items list
+        for (UInt i = aId + 1; i < MAX_AREAS; i++)
+        {
+            areas[i - 1] = areas[i];
+        }
+
+        //Update prev/next links
+        for (UInt i = 1; i < MAX_AREAS; i++)
+        {
+            if (i == 1)
+                areas[i - 1].prevArea = 0;
+            if (&areas[i] || areas[i].numFrames)
+                areas[i - 1].nextArea = &areas[i];
+            else
+                areas[i - 1].nextArea = 0;
+            areas[i].prevArea = &areas[i - 1];
+        }
+    }
+}
+
 /*
  * Исключает регион из участка размеченной памяти.
  * NOTE Временно исключаем ядро из доступной размеченной памяти
+ * Вырезать можно только чистые регионы.
  */
 void System::PhysMemory::excludeRegion(const Address addr, const ULong length)
 {
+    debugf("Excluding region [from=%X to %X]\n", addr, (addr + length));
     Frame page = GET_FRAME(addr);
     Frame endPage = GET_FRAME(addr + length);
 
@@ -82,18 +114,29 @@ void System::PhysMemory::excludeRegion(const Address addr, const ULong length)
     for (UInt i = 0; i < MAX_AREAS; i++)
     {
         MemoryArea *area = &areas[i];
-        if (!area)
+        if (!area || !area->numFrames)
             continue;
 
-        if (area->start == page)
+        if (page <= area->start && endPage > area->start)
         {
-            //Вырезаем регион памяти если он попадает на начало участка
-            //Вырезать можно только чистые регионы
+            debugf("Beginning case [page=%i, end=%i] area[start=%i, numFrames=%i]\n", page, endPage, area->start, area->numFrames);
+            //Регион памяти попадает на начало участка
             area->numFrames -= endPage - area->start;
             area->start = endPage;
             area->nextFreeFrame = area->start;
             area->availFrames = area->numFrames;
-            break;
+
+            checkIfEmpty(area, i, areas);
+        }
+        else if (page < area->start + area->numFrames && endPage >= area->start + area->numFrames)
+        {
+            debugf("Ending case [page=%i, end=%i] area[start=%i, numFrames=%i]\n", page, endPage, area->start, area->numFrames);
+
+            //Регион памяти попадает на конец участка
+            area->numFrames -= area->numFrames + area->start - endPage;
+            area->availFrames = area->numFrames;
+
+            checkIfEmpty(area, i, areas);
         }
         else if ((page > area->start && page < area->start + area->numFrames) || (endPage > area->start && endPage < area->start + area->numFrames))
         {
@@ -117,7 +160,7 @@ void System::PhysMemory::printRegions(Std::OutputStream *out)
     for (UInt i = 0; i < MAX_AREAS; i++)
     {
         MemoryArea *area = &areas[i];
-        if (area)
+        if (area && area->numFrames)
         {
             Std::printf(out, "    Region start=%d, frames=%d\n", area->start, area->numFrames);
             if (!area->nextArea)
