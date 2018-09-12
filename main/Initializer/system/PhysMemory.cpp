@@ -126,7 +126,7 @@ void System::PhysMemory::printRegions(Std::OutputStream *out)
     }
 }
 
-System::Frame System::PhysMemory::allocFrame()
+Address System::PhysMemory::allocFrame()
 {
     Frame frame = currArea->nextFreeFrame;
     if (!(--(currArea->availFrames)))
@@ -141,10 +141,10 @@ System::Frame System::PhysMemory::allocFrame()
     {
         currArea->nextFreeFrame++;
     }
-    return frame;
+    return frame * PAGE_SIZE;
 }
 
-void System::PhysMemory::deallocFrame(Frame f)
+void System::PhysMemory::deallocFrame(Address f)
 {
     (void)f;
     kerror("Can't deallocate frame");
