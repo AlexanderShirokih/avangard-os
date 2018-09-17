@@ -39,9 +39,8 @@
 #ifdef KERNEL_ASSERTION
 
 #define kassert(x) \
-    if (!x)        \
+    if (!(x))        \
         System::kerror("KERNEL ASSERTION FAILED", __FILE__, __LINE__);
-
 #else
 #define kassert(x)
 #endif

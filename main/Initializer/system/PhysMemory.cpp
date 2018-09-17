@@ -75,6 +75,8 @@ void static inline checkIfEmpty(System::MemoryArea *area, UInt aId, System::Memo
         if (area->prevArea)
             area->prevArea->nextArea = area->nextArea;
 
+
+ //Update prev/next links
         //Trim items list
         for (UInt i = aId + 1; i < MAX_AREAS; i++)
         {
@@ -82,16 +84,19 @@ void static inline checkIfEmpty(System::MemoryArea *area, UInt aId, System::Memo
         }
 
         //Update prev/next links
-        for (UInt i = 1; i < MAX_AREAS; i++)
-        {
-            if (i == 1)
-                areas[i - 1].prevArea = 0;
-            if (&areas[i] || areas[i].numFrames)
-                areas[i - 1].nextArea = &areas[i];
-            else
-                areas[i - 1].nextArea = 0;
-            areas[i].prevArea = &areas[i - 1];
-        }
+        // for (UInt i = 1; i < MAX_AREAS; i++)
+        // {
+            // if (i == 1)
+                // areas[i - 1].prevArea = 0;
+            // if (&areas[i] || areas[i].numFrames)
+                // areas[i - 1].nextArea = &areas[i];
+            // else
+                // areas[i - 1].nextArea = 0;
+            // areas[i].prevArea = &areas[i - 1];
+
+
+            // debugf("Remap area [start=%i num=%i, next=%X, prev=%X\n", areas[i].start, areas[i].numFrames,  areas[i].nextArea,  areas[i].prevArea);
+        // }
     }
 }
 
@@ -168,8 +173,12 @@ void System::PhysMemory::printRegions(Std::OutputStream *out)
 Address System::PhysMemory::allocFrame()
 {
     Frame frame = currArea->nextFreeFrame;
+    debugf("numAvail=%i ", currArea->availFrames);
+
     if (!(--(currArea->availFrames)))
-    { //Если это была последняя страница
+    { 
+        while(1);
+        //Если это была последняя страница
         if (!(currArea = currArea->nextArea))
         { //Если это был последний участок памяти
             kerror("Out Of Memory!");

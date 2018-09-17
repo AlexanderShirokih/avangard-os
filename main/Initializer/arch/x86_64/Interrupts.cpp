@@ -6,10 +6,11 @@
  */
 
 #include <arch/x86_64/interrupts.h>
-#include <arch/x86_64/ioports.h>
 #include <arch/x86_64/exceptions.h>
+
 #include <std/types.h>
 #include <std/memory.h>
+#include <sys/ioports.h>
 
 #define NUM_IDT_ENTRIES 256
 #define SYSTEM_CS 0x08
