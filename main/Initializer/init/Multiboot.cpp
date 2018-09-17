@@ -52,7 +52,8 @@ void parseMultibootTags(Address mboot_addr)
     //Kernel
     memory->excludeRegion((Address)(&system_start),
                           (ULong)(&system_end - &system_start));
-    //Multiboot
+    //Exclude first 2MiB of memory, because it was allocated in early init code
+    memory->excludeRegion((Address)0, 1<<21);
     //	exclude_region(mboot_addr, (Address) tag - mboot_addr);
 }
 } // namespace System
