@@ -1,5 +1,4 @@
-64-bit OS for X86 architecture, written in C++.
-Almost written...
+# 64-bit OS for X86 architecture.
 
 
 * Current Features *
@@ -29,9 +28,3 @@ Almost written...
     - platform and os - independend drivers using designed cross-api
     - wrapper-apps for running Windows, Linux, and some other OS'es applications
     - and much more
-
-
-If you read this and want to help
-in the development of this project  - please mail me
-
-    alexandershirokih98@gmail.com
